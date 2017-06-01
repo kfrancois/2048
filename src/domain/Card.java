@@ -7,7 +7,7 @@ public class Card {
     Card() {
     }
 
-    Card(int value) {
+    public Card(int value) {
 
         this.value = value;
     }
@@ -16,7 +16,7 @@ public class Card {
         this.value *= 2;
     }
 
-    int getValue() {
+    public int getValue() {
         return value;
     }
 
