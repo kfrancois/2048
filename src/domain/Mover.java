@@ -2,7 +2,13 @@ package domain;
 
 import java.util.Random;
 
-public class Mover {
+import static util.ArrayMapper.mapToIntArray;
+
+/**
+ * This class is responsible for the movement algorithm in the game.
+ */
+class Mover {
+
     private Random random;
 
     private Card[][] cards;
@@ -11,6 +17,11 @@ public class Mover {
         this.random = new Random();
     }
 
+    /**
+     * @param move  the move to be executed
+     * @param cards the 2d card-array that has to be moved
+     * @return the 2d-array upon which the move has been executed
+     */
     Card[][] move(Move move, Card[][] cards) {
         this.cards = cards;
         switch (move) {
@@ -27,26 +38,35 @@ public class Mover {
                 left();
                 break;
         }
-        spawnCard(cards);
+        spawnCard();
         return cards;
     }
 
-    private void spawnCard(Card[][] cards) {
+    /**
+     * Chooses a random card with value '0' and changes it to 2 or 4
+     */
+    private void spawnCard() {
         int i, j;
         do {
-            i = random.nextInt(Vars.size);
-            j = random.nextInt(Vars.size);
+            i = random.nextInt(Board.size);
+            j = random.nextInt(Board.size);
         } while (!cards[i][j].isEmpty());
 
         cards[i][j].setValue(random.nextInt(10) > 2 ? 2 : 4);
     }
 
+    /**
+     * Moves the cards up according to 2048-rules
+     */
     private void up() {
         rotateCCW();
         left();
         rotateCW();
     }
 
+    /**
+     * Moves the cards right according to 2048-rules
+     */
     private void right() {
         rotateCW();
         rotateCW();
@@ -55,15 +75,21 @@ public class Mover {
         rotateCW();
     }
 
+    /**
+     * Moves the cards down according to 2048-rules
+     */
     private void down() {
         rotateCW();
         left();
         rotateCCW();
     }
 
+    /**
+     * Moves the cards left according to 2048-rules
+     */
     private void left() {
         for (Card[] row : cards) {
-            boolean[] hasMoved = new boolean[Vars.size];
+            boolean[] hasMoved = new boolean[Board.size];
             for (int i = 1; i < row.length; i++) {
                 int k = i;
                 for (int j = k - 1; j >= 0; j--) {
@@ -81,8 +107,11 @@ public class Mover {
         }
     }
 
+    /**
+     * Rotates the array clockwise
+     */
     private void rotateCW() {
-        int size = Vars.size;
+        int size = Board.size;
         Card[][] tmp = new Card[size][size];
         for (int r = 0; r < size; r++) {
             for (int c = 0; c < size; c++) {
@@ -92,8 +121,11 @@ public class Mover {
         System.arraycopy(tmp, 0, cards, 0, size);
     }
 
+    /**
+     * Rotates the array counter-clockwise
+     */
     private void rotateCCW() {
-        int size = Vars.size;
+        int size = Board.size;
         Card[][] tmp = new Card[size][size];
         for (int i = 0; i < size; ++i) {
             for (int j = 0; j < size; ++j) {
@@ -101,5 +133,38 @@ public class Mover {
             }
         }
         System.arraycopy(tmp, 0, cards, 0, size);
+    }
+
+    boolean moveChangesBoard(Move move, Card[][] cards) {
+
+        int[][] array = mapToIntArray(cards);
+
+        int size = Board.size;
+        for (int a = move.ordinal(); a < 3; a++) {
+            int[][] tmp = new int[size][size];
+            for (int r = 0; r < size; r++) {
+                for (int c = 0; c < size; c++) {
+                    tmp[c][size - 1 - r] = array[r][c];
+                }
+            }
+            System.arraycopy(tmp, 0, array, 0, size);
+        }
+
+        for (int[] row : array) {
+            for (int i = 1; i < row.length; i++) {
+                for (int j = i - 1; j >= 0; j--) {
+                    if (row[i] == 0) //|| row[j].getValue() != row[i].getValue()
+                        j = -1;
+                    else {
+                        if (row[j] != 0 && row[j] != row[i])
+                            break;
+                        if (row[j] == 0 || row[j] == row[i]) {
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+        return false;
     }
 }

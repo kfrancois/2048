@@ -3,51 +3,47 @@ package domain;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 
+import static util.ArrayMapper.mapToCardArray;
+import static util.ArrayMapper.mapToIntArray;
+
 public class Board {
 
-    private Mover mover = new Mover();
+    static int size;
 
     private boolean canUndo;
-    private Card[][] lastCards = new Card[4][4];
+    private int[][] lastCards;
     private Card[][] cards;
+    private Mover mover = new Mover();
 
-    public Board() {
-        this.cards = new Card[4][4];
+    public Board(int size) {
+        Board.size = size;
+        cards = new Card[size][size];
+        lastCards = new int[size][size];
         Arrays.stream(cards).forEach(cardArray -> Arrays.fill(cardArray, new Card()));
     }
 
+    public Board(int[][] cards) {
+        this(mapToCardArray(cards));
+    }
+
     public Board(Card[][] cards) {
+        size = cards.length;
+        lastCards = new int[size][size];
         this.cards = cards;
     }
 
-    public Board(int[][] cards) {
-        this.cards = new Card[4][4];
-        int i = 0;
-        for (int[] row : cards) {
-            int j = 0;
-            for (int el : row) {
-                this.cards[i][j] = new Card(el);
-                j++;
-            }
-            i++;
-        }
-    }
-
-
     public void move(Move move) {
-        for (int i = 0; i < 4; i++) {
-            System.arraycopy(cards[i], 0, lastCards[i], 0, 4);
-        }
+        lastCards = mapToIntArray(cards);
         cards = mover.move(move, cards);
         canUndo = true;
     }
 
     public void undo() {
         if (canUndo) {
-            for (int i = 0; i < 4; i++) {
-                System.arraycopy(lastCards[i], 0, cards[i], 0, 4);
-            }
+            cards = mapToCardArray(lastCards);
             canUndo = false;
+        } else {
+            throw new IllegalStateException("Can't undo twice in a row");
         }
     }
 
@@ -61,5 +57,20 @@ public class Board {
         }
         builder.append("\n--- --- --- ---\n");
         return builder.toString();
+    }
+
+    private boolean moveChangesBoard(Move move) {
+        return mover.moveChangesBoard(move, cards);
+    }
+
+    public Move[] getPossibleMoves() {
+        return Arrays.stream(Move.values()).filter(this::moveChangesBoard).toArray(Move[]::new);
+    }
+
+    public boolean isGameOver() {
+        for (Move move : Move.values()) {
+            if (moveChangesBoard(move)) return false;
+        }
+        return true;
     }
 }
