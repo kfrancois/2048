@@ -3,8 +3,8 @@ package domain;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 
-import static util.ArrayMapper.mapToCardArray;
-import static util.ArrayMapper.mapToIntArray;
+import static util.ArrayHelper.mapToCardArray;
+import static util.ArrayHelper.mapToIntArray;
 
 public class Board {
 
@@ -33,9 +33,13 @@ public class Board {
     }
 
     public void move(Move move) {
-        lastCards = mapToIntArray(cards);
-        cards = mover.move(move, cards);
-        canUndo = true;
+        if (Arrays.asList(getPossibleMoves()).contains(move)) {
+            lastCards = mapToIntArray(cards);
+            cards = mover.move(move, cards);
+            canUndo = true;
+        } else {
+            throw new IllegalArgumentException("Can't move in this direction");
+        }
     }
 
     public void undo() {

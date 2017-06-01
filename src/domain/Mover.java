@@ -1,8 +1,11 @@
 package domain;
 
+import util.ArrayHelper;
+
+import java.util.Arrays;
 import java.util.Random;
 
-import static util.ArrayMapper.mapToIntArray;
+import static util.ArrayHelper.mapToIntArray;
 
 /**
  * This class is responsible for the movement algorithm in the game.
@@ -135,33 +138,35 @@ class Mover {
         System.arraycopy(tmp, 0, cards, 0, size);
     }
 
+    /**
+     * Determines if the given move changes the cards
+     *
+     * @param move  This is the direction that is tested
+     * @param cards This is the 2d card-array that will be moved
+     * @return Returns whether the given move actually moved any of the cards
+     */
     boolean moveChangesBoard(Move move, Card[][] cards) {
 
         int[][] array = mapToIntArray(cards);
 
-        int size = Board.size;
         for (int a = move.ordinal(); a < 3; a++) {
-            int[][] tmp = new int[size][size];
-            for (int r = 0; r < size; r++) {
-                for (int c = 0; c < size; c++) {
-                    tmp[c][size - 1 - r] = array[r][c];
-                }
-            }
-            System.arraycopy(tmp, 0, array, 0, size);
+            array = ArrayHelper.rotateCW(array);
         }
+        return Arrays.stream(array).anyMatch(this::moveChangesRow);
+    }
 
-        for (int[] row : array) {
-            for (int i = 1; i < row.length; i++) {
-                for (int j = i - 1; j >= 0; j--) {
-                    if (row[i] == 0) //|| row[j].getValue() != row[i].getValue()
-                        j = -1;
-                    else {
-                        if (row[j] != 0 && row[j] != row[i])
-                            break;
-                        if (row[j] == 0 || row[j] == row[i]) {
-                            return true;
-                        }
-                    }
+    /**
+     * Determines if the row changes when slide to left is applied
+     *
+     * @param row This is the given row
+     * @return Returns whether the row will change
+     */
+    private boolean moveChangesRow(int[] row) {
+        for (int i = 1; i < row.length; i++) {
+            for (int j = i - 1; j >= 0; j--) {
+                if (row[i] == 0 || row[j] != 0 && row[j] != row[i]) break;
+                if (row[j] == 0 || row[j] == row[i]) {
+                    return true;
                 }
             }
         }
