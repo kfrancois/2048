@@ -156,7 +156,8 @@ class Mover {
     }
 
     /**
-     * Determines if the row changes when slide to left is applied
+     * Determines if the row changes when slide to left is applied.
+     * This method is only used as a helper method in this class - see moveChangesBoard
      *
      * @param row This is the given row
      * @return Returns whether the row will change
