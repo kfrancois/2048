@@ -51,6 +51,10 @@ public class Board {
         }
     }
 
+    public int[][] getBoard() {
+        return mapToIntArray(cards);
+    }
+
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();
